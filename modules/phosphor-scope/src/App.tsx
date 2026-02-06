@@ -1,10 +1,14 @@
 import { useState, useCallback, useEffect } from 'react'
 import { TopBar, ControlPanel, ScopeDisplay, DropOverlay } from '@/components'
+import { useKeyboardShortcuts } from '@/hooks'
 import { useAudioStore } from '@/stores'
 
 export function App() {
   const [isDragging, setIsDragging] = useState(false)
-  const { loadFile, togglePlayback } = useAudioStore()
+  const { loadFile } = useAudioStore()
+
+  // Keyboard shortcuts (Space: play/pause, 1/2/3: mode, R: record)
+  useKeyboardShortcuts()
 
   // Drag counter to handle nested elements
   let dragCounter = 0
@@ -43,34 +47,20 @@ export function App() {
     [loadFile]
   )
 
-  // Keyboard shortcuts
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      // Space to toggle playback (only if not in an input)
-      if (e.code === 'Space' && e.target === document.body) {
-        e.preventDefault()
-        togglePlayback()
-      }
-    },
-    [togglePlayback]
-  )
-
   useEffect(() => {
-    // Add event listeners
+    // Add drag-drop event listeners
     document.addEventListener('dragenter', handleDragEnter)
     document.addEventListener('dragleave', handleDragLeave)
     document.addEventListener('dragover', handleDragOver)
     document.addEventListener('drop', handleDrop)
-    document.addEventListener('keydown', handleKeyDown)
 
     return () => {
       document.removeEventListener('dragenter', handleDragEnter)
       document.removeEventListener('dragleave', handleDragLeave)
       document.removeEventListener('dragover', handleDragOver)
       document.removeEventListener('drop', handleDrop)
-      document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [handleDragEnter, handleDragLeave, handleDragOver, handleDrop, handleKeyDown])
+  }, [handleDragEnter, handleDragLeave, handleDragOver, handleDrop])
 
   return (
     <div className="flex h-screen flex-col bg-black text-gray-400 overflow-hidden">

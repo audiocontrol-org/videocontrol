@@ -26,7 +26,7 @@ export function RecordButton() {
         }
         disabled:opacity-30 disabled:cursor-not-allowed
       `}
-      title={isRecording ? 'Stop Recording' : 'Start Recording'}
+      title={isRecording ? 'Stop Recording (R)' : 'Start Recording (R)'}
     >
       {isRecording ? (
         <>

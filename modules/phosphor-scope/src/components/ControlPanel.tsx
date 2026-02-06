@@ -3,9 +3,9 @@ import { Slider, ButtonGroup, ColorSwatch, Section } from '@/components/ui'
 import type { VisualizationMode, PhosphorColor, VideoFormat } from '@videocontrol/video-core'
 
 const MODE_OPTIONS: { value: VisualizationMode; label: string }[] = [
-  { value: 'waveform', label: 'Wave' },
-  { value: 'lissajous', label: 'Lissajous' },
-  { value: 'spectrum', label: 'FFT' },
+  { value: 'waveform', label: '1 Wave' },
+  { value: 'lissajous', label: '2 Lissajous' },
+  { value: 'spectrum', label: '3 FFT' },
 ]
 
 const FORMAT_OPTIONS: { value: VideoFormat; label: string }[] = [
