@@ -9,11 +9,28 @@ import {
 } from '@/lib/rendering'
 import { FilmEffects } from './FilmEffects'
 
+// Oscilloscope photo dimensions and CRT screen position
+const PHOTO = {
+  origW: 654,
+  origH: 984,
+  crtCX: 325, // CRT center X in original image coords
+  crtCY: 250, // CRT center Y in original image coords
+  crtR: 179, // CRT cutout radius in original image coords
+}
+
 export function ScopeDisplay() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const glowCanvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+  const assemblyRef = useRef<HTMLDivElement>(null)
+
+  const [layout, setLayout] = useState({
+    assemblyW: 0,
+    assemblyH: 0,
+    canvasSize: 0,
+    canvasLeft: 0,
+    canvasTop: 0,
+  })
 
   const { engine, isLoaded, isPlaying } = useAudioStore()
   const {
@@ -30,7 +47,7 @@ export function ScopeDisplay() {
     flickerAmount,
   } = useScopeStore()
 
-  // Resize canvas to match container
+  // Resize and position canvas to match CRT screen area
   useEffect(() => {
     const resizeCanvas = () => {
       const container = containerRef.current
@@ -38,20 +55,47 @@ export function ScopeDisplay() {
       const glowCanvas = glowCanvasRef.current
       if (!container || !canvas || !glowCanvas) return
 
-      const { width, height } = container.getBoundingClientRect()
-      const size = Math.min(width, height) - 40 // Padding
+      const { width: wrapW, height: wrapH } = container.getBoundingClientRect()
+      const photoAspect = PHOTO.origW / PHOTO.origH
+      const pad = 20
+      const availW = wrapW - pad
+      const availH = wrapH - pad
 
-      canvas.width = size
-      canvas.height = size
-      glowCanvas.width = size
-      glowCanvas.height = size
-      setCanvasSize({ width: size, height: size })
+      let displayW: number, displayH: number
+      if (availW / availH > photoAspect) {
+        displayH = availH
+        displayW = displayH * photoAspect
+      } else {
+        displayW = availW
+        displayH = displayW / photoAspect
+      }
+
+      // Scale factor from original image to display size
+      const scale = displayW / PHOTO.origW
+
+      // Canvas size and position to cover exactly the CRT area
+      const canvasSize = Math.ceil(PHOTO.crtR * 2 * scale)
+      const canvasLeft = Math.floor((PHOTO.crtCX - PHOTO.crtR) * scale)
+      const canvasTop = Math.floor((PHOTO.crtCY - PHOTO.crtR) * scale)
+
+      canvas.width = canvasSize
+      canvas.height = canvasSize
+      glowCanvas.width = canvasSize
+      glowCanvas.height = canvasSize
+
+      setLayout({
+        assemblyW: displayW,
+        assemblyH: displayH,
+        canvasSize,
+        canvasLeft,
+        canvasTop,
+      })
     }
 
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
     return () => window.removeEventListener('resize', resizeCanvas)
-  }, [])
+  }, [isLoaded])
 
   // Animation frame callback
   const animate = useCallback(() => {
@@ -192,23 +236,56 @@ export function ScopeDisplay() {
           </p>
         </div>
       ) : (
-        <div className="relative">
+        <div
+          ref={assemblyRef}
+          className="relative"
+          style={{
+            width: layout.assemblyW,
+            height: layout.assemblyH,
+          }}
+        >
           {/* Glow canvas (accumulation buffer) - hidden */}
           <canvas
             ref={glowCanvasRef}
-            className="absolute inset-0 opacity-0 pointer-events-none"
-          />
-          {/* Main display canvas */}
-          <canvas
-            ref={canvasRef}
-            className="rounded-full border-4 border-gray-800 shadow-2xl"
+            className="absolute rounded-full opacity-0 pointer-events-none"
             style={{
-              boxShadow: `0 0 60px rgba(${PHOSPHOR_COLORS[color].r}, ${PHOSPHOR_COLORS[color].g}, ${PHOSPHOR_COLORS[color].b}, 0.3)`,
+              left: layout.canvasLeft,
+              top: layout.canvasTop,
+              width: layout.canvasSize,
+              height: layout.canvasSize,
             }}
           />
-          {/* Film effects overlay */}
-          {canvasSize.width > 0 && (
-            <FilmEffects width={canvasSize.width} height={canvasSize.height} />
+
+          {/* Main display canvas - positioned inside CRT screen area */}
+          <canvas
+            ref={canvasRef}
+            className="absolute rounded-full"
+            style={{
+              left: layout.canvasLeft,
+              top: layout.canvasTop,
+              width: layout.canvasSize,
+              height: layout.canvasSize,
+              background: '#0a0a0a',
+            }}
+          />
+
+          {/* Oscilloscope photo overlay */}
+          <img
+            src="/oscilloscope.png"
+            alt=""
+            className="relative block w-full h-full pointer-events-none select-none"
+            style={{ zIndex: 2 }}
+            draggable={false}
+          />
+
+          {/* Film effects overlay - covers entire display including oscilloscope */}
+          {layout.assemblyW > 0 && layout.assemblyH > 0 && (
+            <div
+              className="absolute inset-0 overflow-hidden pointer-events-none"
+              style={{ zIndex: 3 }}
+            >
+              <FilmEffects width={layout.assemblyW} height={layout.assemblyH} />
+            </div>
           )}
         </div>
       )}

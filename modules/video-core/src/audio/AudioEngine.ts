@@ -294,6 +294,58 @@ export class AudioEngine {
   }
 
   /**
+   * Play audio while also routing to a MediaStreamDestination for recording.
+   * The audio will play through speakers AND be captured to the stream.
+   * Returns a cleanup function to call when recording stops.
+   */
+  playForRecording(destination: MediaStreamAudioDestinationNode): (() => void) | null {
+    if (!this.audioBuffer || !this.audioContext || !this.splitter) return null
+    if (!this.analyserLeft || !this.analyserRight) return null
+
+    // Stop any current playback first
+    this.stop()
+
+    // Resume context if suspended (autoplay policy)
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume()
+    }
+
+    this.source = this.audioContext.createBufferSource()
+    this.source.buffer = this.audioBuffer
+
+    // Connect: source -> splitter -> analysers (L/R) for visualization
+    this.source.connect(this.splitter)
+    this.splitter.connect(this.analyserLeft, 0)
+    this.splitter.connect(this.analyserRight, 1)
+
+    // Connect to destination for audio output (speakers)
+    this.source.connect(this.audioContext.destination)
+
+    // Connect to recording destination
+    this.source.connect(destination)
+
+    this.source.onended = () => {
+      if (this._isPlaying) {
+        this._isPlaying = false
+        this._pauseTime = 0
+        this.emit('ended', undefined)
+        this.emitStateChange()
+      }
+    }
+
+    this._startTime = this.audioContext.currentTime
+    this._pauseTime = 0
+    this.source.start(0)
+    this._isPlaying = true
+    this.emitStateChange()
+
+    // Return cleanup function
+    return () => {
+      this.stop()
+    }
+  }
+
+  /**
    * Get current engine state.
    */
   getState(): AudioEngineState {

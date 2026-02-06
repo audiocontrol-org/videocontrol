@@ -2,7 +2,6 @@ import { useRef, useEffect, useCallback } from 'react'
 import { useFilmStore } from '@/stores'
 import { useAnimationFrame } from '@/hooks'
 import {
-  drawFilmGrain,
   drawScratches,
   drawDust,
   drawLightLeak,
@@ -16,6 +15,37 @@ interface FilmEffectsProps {
   height: number
 }
 
+// Generate grain at a fixed small size for performance
+const GRAIN_SIZE = 256
+
+/**
+ * Pre-generate grain texture at small size.
+ * This is much faster than generating full-size grain every frame.
+ */
+function generateGrainTexture(ctx: CanvasRenderingContext2D): void {
+  const imageData = ctx.createImageData(GRAIN_SIZE, GRAIN_SIZE)
+  const data = imageData.data
+  const blockSize = 2
+
+  for (let by = 0; by < GRAIN_SIZE; by += blockSize) {
+    for (let bx = 0; bx < GRAIN_SIZE; bx += blockSize) {
+      const v = Math.floor(Math.random() * 80 + 88)
+
+      for (let dy = 0; dy < blockSize; dy++) {
+        for (let dx = 0; dx < blockSize; dx++) {
+          const idx = ((by + dy) * GRAIN_SIZE + (bx + dx)) * 4
+          data[idx] = v
+          data[idx + 1] = v
+          data[idx + 2] = v
+          data[idx + 3] = 255
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+}
+
 export function FilmEffects({ width, height }: FilmEffectsProps) {
   const grainCanvasRef = useRef<HTMLCanvasElement>(null)
   const scratchCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -27,14 +57,23 @@ export function FilmEffects({ width, height }: FilmEffectsProps) {
   const scratchesRef = useRef<Scratch[]>([])
   const dustRef = useRef<DustParticle[]>([])
   const timestampRef = useRef<number>(0)
+  const lastGrainUpdateRef = useRef<number>(0)
 
   const { grain, weave, flicker, scratches, lightLeaks, dust, colorFade } =
     useFilmStore()
 
-  // Resize canvases when dimensions change
+  // Initialize grain canvas at fixed small size
+  useEffect(() => {
+    const grainCanvas = grainCanvasRef.current
+    if (grainCanvas) {
+      grainCanvas.width = GRAIN_SIZE
+      grainCanvas.height = GRAIN_SIZE
+    }
+  }, [])
+
+  // Resize other canvases when dimensions change
   useEffect(() => {
     const canvases = [
-      grainCanvasRef.current,
       scratchCanvasRef.current,
       dustCanvasRef.current,
       leakCanvasRef.current,
@@ -88,15 +127,19 @@ export function FilmEffects({ width, height }: FilmEffectsProps) {
         container.style.filter = 'none'
       }
 
-      // Film grain
+      // Film grain - update at ~15fps for performance (authentic film look)
       if (grain > 0) {
         grainCanvas.style.opacity = String(grain * 0.6)
-        drawFilmGrain(grainCtx, width, height)
+        const grainInterval = 67 // ~15fps
+        if (timestamp - lastGrainUpdateRef.current > grainInterval) {
+          generateGrainTexture(grainCtx)
+          lastGrainUpdateRef.current = timestamp
+        }
       } else {
         grainCanvas.style.opacity = '0'
       }
 
-      // Scratches
+      // Scratches - update at ~30fps
       if (scratches > 0) {
         scratchCanvas.style.opacity = String(scratches)
         scratchesRef.current = drawScratches(
@@ -110,7 +153,7 @@ export function FilmEffects({ width, height }: FilmEffectsProps) {
         scratchCanvas.style.opacity = '0'
       }
 
-      // Dust
+      // Dust - update at ~30fps
       if (dust > 0) {
         dustCanvas.style.opacity = String(dust)
         dustRef.current = drawDust(
@@ -148,11 +191,16 @@ export function FilmEffects({ width, height }: FilmEffectsProps) {
       className="absolute inset-0 pointer-events-none"
       style={{ filter: colorFadeFilter }}
     >
-      {/* Film grain overlay */}
+      {/* Film grain overlay - small texture tiled via CSS */}
       <canvas
         ref={grainCanvasRef}
         className="absolute inset-0"
-        style={{ mixBlendMode: 'overlay' }}
+        style={{
+          mixBlendMode: 'overlay',
+          width: '100%',
+          height: '100%',
+          imageRendering: 'pixelated',
+        }}
       />
 
       {/* Scratches overlay */}
