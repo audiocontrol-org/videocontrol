@@ -6,9 +6,10 @@ Generate music videos that respond to audio.
 
 Video Control provides a collection of browser-based tools for creating visualizations and music videos from audio files. Each tool is designed for a specific aesthetic or visualization style.
 
-## Visualizers
+## Modules
 
-- **Phosphor Scope** - CRT oscilloscope with film projector effects
+- **Phosphor Scope** - CRT oscilloscope with film projector effects (browser-based)
+- **Text Overlay** - YAML-driven text overlay generator with ProRes 4444 alpha output (CLI/Remotion)
 
 ## Getting Started
 
@@ -29,7 +30,8 @@ pnpm build
 videocontrol/
 ├── modules/
 │   ├── video-core/       # Shared audio/recording infrastructure
-│   └── phosphor-scope/   # CRT oscilloscope visualizer
+│   ├── phosphor-scope/   # CRT oscilloscope visualizer
+│   └── text-overlay/     # Text overlay generator (Remotion-based)
 ├── package.json
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
