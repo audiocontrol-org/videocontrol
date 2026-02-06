@@ -56,3 +56,33 @@ export interface AudioEngineEventMap {
   loaded: { fileName: string; duration: number }
   error: Error
 }
+
+// Recording types
+
+export interface VideoRecorderConfig {
+  /** Frames per second for recording (default: 24 for film cadence) */
+  frameRate?: number
+  /** Video bitrate in bits per second (default: 8000000 = 8 Mbps) */
+  videoBitsPerSecond?: number
+}
+
+export interface VideoRecorderState {
+  isRecording: boolean
+  format: VideoFormat
+  elapsedTime: number
+}
+
+export type VideoRecorderEventType =
+  | 'start'
+  | 'stop'
+  | 'complete'
+  | 'error'
+  | 'timeupdate'
+
+export interface VideoRecorderEventMap {
+  start: { format: VideoFormat }
+  stop: void
+  complete: { blob: Blob; filename: string }
+  error: Error
+  timeupdate: { elapsedTime: number }
+}

@@ -1,6 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AudioEngine } from './AudioEngine'
 
+// Helper to create a mock file with arrayBuffer support
+function createMockFile(name: string, type: string): File {
+  const file = new File(['audio data'], name, { type })
+  // jsdom doesn't implement arrayBuffer(), so we mock it
+  file.arrayBuffer = vi.fn().mockResolvedValue(new ArrayBuffer(8))
+  return file
+}
+
 // Mock Web Audio API
 const mockAnalyserNode = {
   fftSize: 2048,
@@ -112,7 +120,7 @@ describe('AudioEngine', () => {
 
       mockAudioContext.decodeAudioData.mockResolvedValue(mockBuffer)
 
-      const file = new File(['audio data'], 'test.mp3', { type: 'audio/mp3' })
+      const file = createMockFile('test.mp3', 'audio/mp3')
       await engine.loadFile(file)
 
       expect(AudioContext).toHaveBeenCalled()
@@ -129,7 +137,7 @@ describe('AudioEngine', () => {
       const loadedHandler = vi.fn()
       engine.on('loaded', loadedHandler)
 
-      const file = new File(['audio data'], 'song.wav', { type: 'audio/wav' })
+      const file = createMockFile('song.wav', 'audio/wav')
       await engine.loadFile(file)
 
       expect(loadedHandler).toHaveBeenCalledWith({
@@ -145,7 +153,7 @@ describe('AudioEngine', () => {
       const errorHandler = vi.fn()
       engine.on('error', errorHandler)
 
-      const file = new File(['bad data'], 'bad.mp3', { type: 'audio/mp3' })
+      const file = createMockFile('bad.mp3', 'audio/mp3')
 
       await expect(engine.loadFile(file)).rejects.toThrow('Decode failed')
       expect(errorHandler).toHaveBeenCalledWith(error)
@@ -179,7 +187,7 @@ describe('AudioEngine', () => {
       const stateHandler = vi.fn()
       engine.on('statechange', stateHandler)
 
-      const file = new File(['audio'], 'test.mp3', { type: 'audio/mp3' })
+      const file = createMockFile('test.mp3', 'audio/mp3')
       await engine.loadFile(file)
 
       stateHandler.mockClear()
