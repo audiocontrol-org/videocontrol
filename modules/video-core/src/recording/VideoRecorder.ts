@@ -4,8 +4,8 @@ import type {
   VideoRecorderState,
   VideoRecorderEventType,
   VideoRecorderEventMap,
-} from '@/types'
-import { VIDEO_FORMATS } from '@/types'
+} from '../types'
+import { VIDEO_FORMATS } from '../types'
 
 type EventCallback<T extends VideoRecorderEventType> = (
   data: VideoRecorderEventMap[T]

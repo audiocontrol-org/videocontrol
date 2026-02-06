@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { VideoRecorder } from './VideoRecorder'
-import type { VideoFormat } from '@/types'
+import type { VideoFormat } from '../types'
 
 // Mock canvas and context
 const mockContext = {

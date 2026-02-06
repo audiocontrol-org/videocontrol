@@ -4,7 +4,7 @@ import type {
   AudioEngineState,
   AudioEngineEventType,
   AudioEngineEventMap,
-} from '@/types'
+} from '../types'
 
 type EventCallback<T extends AudioEngineEventType> = (
   data: AudioEngineEventMap[T]
