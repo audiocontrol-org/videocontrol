@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useAudioStore, useRecordingStore } from '@/stores'
+import { RecordButton } from './RecordButton'
 
 export function TopBar() {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -76,6 +77,9 @@ export function TopBar() {
             ■
           </button>
         </div>
+
+        {/* Record button */}
+        <RecordButton />
 
         {/* File picker */}
         <input
