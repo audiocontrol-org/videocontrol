@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import { useAudioStore, useScopeStore } from '@/stores'
 import { useAnimationFrame } from '@/hooks'
 import {
@@ -7,11 +7,13 @@ import {
   drawLissajous,
   drawSpectrum,
 } from '@/lib/rendering'
+import { FilmEffects } from './FilmEffects'
 
 export function ScopeDisplay() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const glowCanvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
 
   const { engine, isLoaded, isPlaying } = useAudioStore()
   const {
@@ -43,6 +45,7 @@ export function ScopeDisplay() {
       canvas.height = size
       glowCanvas.width = size
       glowCanvas.height = size
+      setCanvasSize({ width: size, height: size })
     }
 
     resizeCanvas()
@@ -203,6 +206,10 @@ export function ScopeDisplay() {
               boxShadow: `0 0 60px rgba(${PHOSPHOR_COLORS[color].r}, ${PHOSPHOR_COLORS[color].g}, ${PHOSPHOR_COLORS[color].b}, 0.3)`,
             }}
           />
+          {/* Film effects overlay */}
+          {canvasSize.width > 0 && (
+            <FilmEffects width={canvasSize.width} height={canvasSize.height} />
+          )}
         </div>
       )}
     </div>
