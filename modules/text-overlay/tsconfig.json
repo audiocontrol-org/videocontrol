@@ -18,5 +18,5 @@
     "resolveJsonModule": true,
     "moduleResolution": "bundler"
   },
-  "exclude": ["remotion.config.ts", "dist"]
+  "exclude": ["remotion.config.ts", "vite.config.ts", "dist"]
 }
