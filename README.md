@@ -1,41 +1,16 @@
-# Video Control
+# Video Control [DEPRECATED]
 
-Generate music videos that respond to audio.
+> **This repository has been archived.** All modules have been ported to the [audiocontrol](https://github.com/audiocontrol-org/audiocontrol) monorepo under `modules/video-control/packages/`.
+>
+> - `@videocontrol/video-core` → `@audiocontrol/video-core`
+> - `@videocontrol/text-overlay` → `@audiocontrol/text-overlay`
+> - `@videocontrol/phosphor-scope` → `@audiocontrol/phosphor-scope`
+>
+> New development happens in [audiocontrol-org/audiocontrol](https://github.com/audiocontrol-org/audiocontrol).
 
-## Overview
+## Original Description
 
-Video Control provides a collection of browser-based tools for creating visualizations and music videos from audio files. Each tool is designed for a specific aesthetic or visualization style.
-
-## Modules
-
-- **Phosphor Scope** - CRT oscilloscope with film projector effects (browser-based)
-- **Text Overlay** - YAML-driven text overlay generator with ProRes 4444 alpha output (CLI/Remotion)
-
-## Getting Started
-
-```bash
-# Install dependencies
-pnpm install
-
-# Run all visualizers in dev mode
-pnpm dev
-
-# Build all modules
-pnpm build
-```
-
-## Project Structure
-
-```
-videocontrol/
-├── modules/
-│   ├── video-core/       # Shared audio/recording infrastructure
-│   ├── phosphor-scope/   # CRT oscilloscope visualizer
-│   └── text-overlay/     # Text overlay generator (Remotion-based)
-├── package.json
-├── pnpm-workspace.yaml
-└── tsconfig.base.json
-```
+Generate music videos that respond to audio. Browser-based tools for creating visualizations and music videos from audio files.
 
 ## License
 
